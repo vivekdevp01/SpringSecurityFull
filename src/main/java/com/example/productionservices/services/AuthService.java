@@ -1,6 +1,7 @@
 package com.example.productionservices.services;
 
 import com.example.productionservices.dtos.LoginDto;
+import com.example.productionservices.dtos.LoginResponseDto;
 import com.example.productionservices.entities.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,10 +14,20 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    public String login(LoginDto loginDto) {
+    private final UserService userService;
+
+    public LoginResponseDto login(LoginDto loginDto) {
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
         User user=(User) authentication.getPrincipal();
-        return jwtService.generateToken(user);
+        String accessToken= jwtService.generateAccessToken(user);
+        String refreshToken= jwtService.generateRefreshToken(user);
+     return new LoginResponseDto(user.getId(),accessToken,refreshToken);
+    }
 
+    public LoginResponseDto refreshToken(String refreshToken) {
+        Long userId=jwtService.getUserIdFromJwtToken(refreshToken);
+        User user=userService.getUserById(userId);
+        String accessToken=jwtService.generateAccessToken(user);
+        return new LoginResponseDto(user.getId(),accessToken,refreshToken);
     }
 }
