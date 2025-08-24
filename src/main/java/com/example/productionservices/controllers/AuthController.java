@@ -1,5 +1,6 @@
 package com.example.productionservices.controllers;
 
+import com.example.productionservices.advices.ApiResponse;
 import com.example.productionservices.dtos.LoginDto;
 import com.example.productionservices.dtos.SignupDto;
 import com.example.productionservices.dtos.UserDto;
@@ -30,15 +31,18 @@ public class AuthController {
     @PostMapping("/signup")
     ResponseEntity<UserDto> signup(@RequestBody SignupDto signupDto) {
         UserDto userDto=userService.signup(signupDto);
-        return new ResponseEntity<>(userDto, HttpStatus.OK);
+        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
 
     }
     @PostMapping("/login")
-    ResponseEntity<String> login(@RequestBody LoginDto  loginDto, HttpServletRequest  request, HttpServletResponse  response ) {
-        String token=authService.login(loginDto);
-        Cookie cookie=new Cookie("token",token);
+    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginDto loginDto,
+                                                     HttpServletResponse response) {
+        String token = authService.login(loginDto);
+
+        Cookie cookie = new Cookie("token", token);
         cookie.setHttpOnly(true);
         response.addCookie(cookie);
-        return new ResponseEntity<>(token, HttpStatus.OK);
+
+        return ResponseEntity.ok(new ApiResponse<>(token));
     }
 }

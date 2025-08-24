@@ -2,14 +2,18 @@ package com.example.productionservices.services;
 
 import com.example.productionservices.dtos.PostDto;
 import com.example.productionservices.entities.Post;
+import com.example.productionservices.entities.User;
 import com.example.productionservices.repositories.PostRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class PostServiceImpl implements PostService{
     private final PostRepository postRepository;
@@ -36,6 +40,8 @@ public class PostServiceImpl implements PostService{
 
     @Override
     public PostDto getPostById(Long id) {
+     User user=(User)   SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+     log.info("user {}",user);
         Optional<Post> post=postRepository.findById(id);
         return post.map(post1 -> modelMapper.map(post1,PostDto.class)).orElse(null);
     }

@@ -1,6 +1,5 @@
 package com.example.productionservices.services;
 
-import com.example.productionservices.dtos.LoginDto;
 import com.example.productionservices.dtos.SignupDto;
 import com.example.productionservices.dtos.UserDto;
 import com.example.productionservices.entities.User;
@@ -9,9 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -40,13 +36,17 @@ public class UserService implements UserDetailsService {
 //    }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("username not found"+username));
+        return userRepository.findByEmail(username).orElseThrow(()-> new UsernameNotFoundException("User with email"+username+"not found"));
     }
 
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(()-> new UsernameNotFoundException("user not found"+userId));
+
+    }
     public UserDto signup(SignupDto signupDto) {
         Optional<User> user=userRepository.findByEmail(signupDto.getEmail());
         if(user.isPresent()){
-            throw new BadCredentialsException("user with email exist"+signupDto.getEmail());
+            throw new BadCredentialsException("User already exists"+signupDto.getEmail());
         }
         User toCreate=modelMapper.map(signupDto,User.class);
         toCreate.setPassword(passwordEncoder.encode(toCreate.getPassword()));
