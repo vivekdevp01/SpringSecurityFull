@@ -4,7 +4,9 @@ import com.example.productionservices.dtos.SignupDto;
 import com.example.productionservices.dtos.UserDto;
 import com.example.productionservices.entities.User;
 import com.example.productionservices.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -17,7 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor@Slf4j
 //@RequiredArgsConstructor
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
@@ -43,6 +45,9 @@ public class UserService implements UserDetailsService {
         return userRepository.findById(userId).orElseThrow(()-> new UsernameNotFoundException("user not found"+userId));
 
     }
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
     public UserDto signup(SignupDto signupDto) {
         Optional<User> user=userRepository.findByEmail(signupDto.getEmail());
         if(user.isPresent()){
@@ -54,5 +59,11 @@ public class UserService implements UserDetailsService {
         return modelMapper.map(savedUser,UserDto.class);
     }
 
+
+    @Transactional
+    public User save(User newUser) {
+        log.info("💾 Saving new user to DB: {}", newUser.getEmail());
+        return userRepository.save(newUser);
+    }
 
 }
