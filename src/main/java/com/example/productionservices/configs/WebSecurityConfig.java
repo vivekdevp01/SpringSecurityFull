@@ -1,5 +1,6 @@
 package com.example.productionservices.configs;
 
+import com.example.productionservices.enums.Permission;
 import com.example.productionservices.enums.Role;
 import com.example.productionservices.filters.JwtAuthFilter;
 import com.example.productionservices.handlers.OAuth2SuccessHandler;
@@ -25,6 +26,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
+import static com.example.productionservices.enums.Permission.POST_CREATE;
 import static com.example.productionservices.enums.Role.ADMIN;
 import static com.example.productionservices.enums.Role.CREATOR;
 
@@ -46,7 +48,10 @@ public class WebSecurityConfig {
                         .requestMatchers(publicRoutes).permitAll()
                         // use hasAuthority if your DB/JWT stores "ADMIN" not "ROLE_ADMIN"
                         .requestMatchers(HttpMethod.GET,"/api/v1/post/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/api/v1/post/**").hasAnyRole(ADMIN.name(),CREATOR.name())
+//                        .requestMatchers(HttpMethod.POST,"/api/v1/post/**").hasAnyRole(ADMIN.name(),CREATOR.name())
+                        .requestMatchers(HttpMethod.POST,"/api/v1/post/**").hasAnyAuthority(Permission.POST_CREATE.name())
+                        .requestMatchers(HttpMethod.GET,"/api/v1/post/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)

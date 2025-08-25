@@ -1,5 +1,6 @@
 package com.example.productionservices.dtos;
 
+import com.example.productionservices.enums.Permission;
 import com.example.productionservices.enums.Role;
 import lombok.*;
 
@@ -16,4 +17,5 @@ public class SignupDto {
     private String password;
     private String name;
     private Set<Role> roles;
+    private Set<Permission> permissions;
 }
