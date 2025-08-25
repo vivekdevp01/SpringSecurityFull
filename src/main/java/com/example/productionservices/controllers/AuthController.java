@@ -6,10 +6,12 @@ import com.example.productionservices.dtos.LoginResponseDto;
 import com.example.productionservices.dtos.SignupDto;
 import com.example.productionservices.dtos.UserDto;
 import com.example.productionservices.services.AuthService;
+import com.example.productionservices.services.JwtService;
 import com.example.productionservices.services.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -23,17 +25,20 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Arrays;
 
 @RestController
+@Slf4j
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final UserService userService;
     private final AuthService   authService;
+    private final JwtService jwtService;
 
     @Value("${deploy.env}")
     private String deployEnv;
-    public AuthController(UserService userService,AuthService authService) {
+    public AuthController(UserService userService, AuthService authService, JwtService jwtService) {
         this.userService = userService;
         this.authService=authService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/signup")
@@ -64,4 +69,39 @@ public class AuthController {
      LoginResponseDto loginResponseDto=authService.refreshToken(refreshToken);
      return  ResponseEntity.ok(loginResponseDto);
     }
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse> logout(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken=Arrays.stream(request.getCookies())
+                .filter(cookie->"refreshToken".equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElseThrow(()->new AuthenticationServiceException("Refresh token not found inside the cookie"));
+        authService.logout(refreshToken);
+        Cookie cookie=new Cookie("refreshToken",null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure("production".equals(deployEnv));
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        return ResponseEntity.ok(new ApiResponse("Logged out successfully"));
+    }
+    @PostMapping("/logout-all-devices")
+   public ResponseEntity<ApiResponse> logoutAllDevices(HttpServletRequest request, HttpServletResponse response){
+       String refreshToken=Arrays.stream(request.getCookies())
+               .filter(cookie->"refreshToken".equals(cookie.getName()))
+               .findFirst()
+               .map(Cookie::getValue)
+               .orElseThrow(()->new AuthenticationServiceException("Refresh token not found inside the cookie"));
+//       Long userId=(Long) request.getAttribute("userId");
+         Long userId=jwtService.getUserIdFromJwtToken(refreshToken);
+       log.info("User id from request attribute: {}", userId);
+       authService.logoutAllDevices(userId);
+       Cookie cookie=new Cookie("refreshToken",null);
+       cookie.setHttpOnly(true);
+       cookie.setSecure("production".equals(deployEnv));
+       cookie.setPath("/");
+       cookie.setMaxAge(0);
+       response.addCookie(cookie);
+       return ResponseEntity.ok(new ApiResponse("Logged out from all devices successfully"));
+   }
 }

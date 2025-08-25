@@ -1,6 +1,9 @@
 package com.example.productionservices.dtos;
 
+import com.example.productionservices.enums.Role;
 import lombok.*;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -12,4 +15,5 @@ public class SignupDto {
     private String email;
     private String password;
     private String name;
+    private Set<Role> roles;
 }

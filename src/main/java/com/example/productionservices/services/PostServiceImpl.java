@@ -40,8 +40,8 @@ public class PostServiceImpl implements PostService{
 
     @Override
     public PostDto getPostById(Long id) {
-     User user=(User)   SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-     log.info("user {}",user);
+//     User user=(User)   SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//     log.info("user {}",user);
         Optional<Post> post=postRepository.findById(id);
         return post.map(post1 -> modelMapper.map(post1,PostDto.class)).orElse(null);
     }
